@@ -7,3 +7,4 @@ edition = "2024"
 oxigraph = "0.4"  # For RDF and SPARQL
 tokio = { version = "1", features = ["full"] }  # For async streams
 async-trait = "0.1"  # For async traits
+regex = "1"  # For regular expression parsing

@@ -58,7 +58,7 @@ impl CSPARQLWindow {
 
 use oxigraph::sparql::QueryResults;
 
-pub async fn execute_query(
+pub fn execute_query(
     container: &QuadContainer,
     query: &str,
 ) -> Result<QueryResults, Box<dyn std::error::Error>> {
