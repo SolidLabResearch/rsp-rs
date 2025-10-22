@@ -1,14 +1,7 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
+mod csparql_window;
+mod quad_container;
+mod window_instance;
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+pub use csparql_window::{CSPARQLWindow, execute_query};
+pub use quad_container::QuadContainer;
+pub use window_instance::WindowInstance;
