@@ -28,7 +28,7 @@
 //!         }
 //!     "#;
 //!
-//!     let mut rsp_engine = RSPEngine::new(query);
+//!     let mut rsp_engine = RSPEngine::new(query.to_string());
 //!     rsp_engine.initialize()?;
 //!
 //!     let stream = rsp_engine.get_stream("https://rsp.rs/stream1").unwrap();

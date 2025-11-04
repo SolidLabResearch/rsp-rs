@@ -1,6 +1,6 @@
 use crate::quad_container::QuadContainer;
 use oxigraph::model::Quad;
-use oxigraph::sparql::{EvaluationError, QueryResults};
+use oxigraph::sparql::QueryResults;
 use oxigraph::store::Store;
 use std::collections::HashSet;
 
@@ -27,7 +27,7 @@ impl R2ROperator {
     }
 
     /// Execute the SPARQL query over the container's quads combined with static data
-    pub fn execute(&self, container: &QuadContainer) -> Result<QueryResults, EvaluationError> {
+    pub fn execute(&self, container: &QuadContainer) -> Result<QueryResults, Box<dyn std::error::Error>> {
         // Create an in-memory store
         let store = Store::new()?;
 
@@ -58,7 +58,7 @@ impl R2ROperator {
         // 1. Preprocess the query to replace custom functions with SPARQL built-ins
         // 2. Use SPARQL BIND expressions with standard math operations
         // 3. Or implement a query rewriter
-        store.query(&self.query)
+        store.query(&self.query).map_err(|e| Box::new(e) as Box<dyn std::error::Error>)
     }
 
     /// Execute the SPARQL query and return results as a vector of solution mappings
@@ -66,7 +66,7 @@ impl R2ROperator {
     pub fn execute_select(
         &self,
         container: &QuadContainer,
-    ) -> Result<Vec<String>, EvaluationError> {
+    ) -> Result<Vec<String>, Box<dyn std::error::Error>> {
         let results = self.execute(container)?;
 
         let mut output = Vec::new();
@@ -122,7 +122,7 @@ mod tests {
     }
 
     #[test]
-    fn test_execute_query() -> Result<(), EvaluationError> {
+    fn test_execute_query() -> Result<(), Box<dyn std::error::Error>> {
         let query = "SELECT * WHERE { ?s ?p ?o }".to_string();
         let mut operator = R2ROperator::new(query);
 

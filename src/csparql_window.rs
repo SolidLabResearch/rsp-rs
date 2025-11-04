@@ -271,14 +271,14 @@ impl CSPARQLWindow {
 
 use oxigraph::sparql::QueryResults;
 
-pub fn execute_query(
-    container: &QuadContainer,
+pub fn execute_query<'a>(
+    container: &'a QuadContainer,
     query: &str,
-) -> Result<QueryResults, Box<dyn std::error::Error>> {
+) -> Result<QueryResults<'a>, Box<dyn std::error::Error>> {
     let store = Store::new()?;
     for quad in &container.elements {
         store.insert(quad)?;
     }
-    let results = store.query(query)?;
+    let results = store.query(query).map_err(|e| Box::new(e) as Box<dyn std::error::Error>)?;
     Ok(results)
 }

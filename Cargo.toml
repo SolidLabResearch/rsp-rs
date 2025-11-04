@@ -12,7 +12,7 @@ documentation = "https://docs.rs/rsp-rs"
 homepage = "https://github.com/argahsuknesib/rsp-rs"
 
 [dependencies]
-oxigraph = "0.4"  # For RDF and SPARQL
-tokio = { version = "1", features = ["full"] }  # For async streams
+oxigraph = "0.5"  # For RDF and SPARQL
+tokio = { version = "1", features = ["rt-multi-thread", "sync", "macros", "time"] }  # For async streams and tasks
 async-trait = "0.1"  # For async traits
 regex = "1"  # For regular expression parsing

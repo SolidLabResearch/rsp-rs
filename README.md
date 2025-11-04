@@ -9,14 +9,12 @@ Add this to your `Cargo.toml`:
 ```toml
 [dependencies]
 rsp-rs = "0.1.0"
-oxigraph = "0.4"
-tokio = { version = "1.0", features = ["full"] }
 ```
 
 Or install with cargo:
 
 ```bash
-cargo add rsp-rs oxigraph tokio --features tokio/full
+cargo add rsp-rs
 ```
 
 ## Usage
