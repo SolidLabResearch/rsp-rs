@@ -1,9 +1,26 @@
 // Representing the instance of a Window.
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone)]
 pub struct WindowInstance {
     pub open: i64,
     pub close: i64,
     pub has_triggered_and_emitted: bool,
+}
+
+// Implement PartialEq and Eq based only on open and close
+impl PartialEq for WindowInstance {
+    fn eq(&self, other: &Self) -> bool {
+        self.open == other.open && self.close == other.close
+    }
+}
+
+impl Eq for WindowInstance {}
+
+// Implement Hash based only on open and close
+impl std::hash::Hash for WindowInstance {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.open.hash(state);
+        self.close.hash(state);
+    }
 }
 
 impl WindowInstance {

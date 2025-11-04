@@ -4,7 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-kolibrie = { path = "../Kolibrie/kolibrie" }  # Local dependency on Kolibrie
 oxigraph = "0.4"  # For RDF and SPARQL
 tokio = { version = "1", features = ["full"] }  # For async streams
 async-trait = "0.1"  # For async traits
