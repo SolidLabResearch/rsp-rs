@@ -36,7 +36,7 @@
 //!     // Add some data
 //!     let quad = Quad::new(
 //!         NamedNode::new("https://rsp.rs/subject")?,  
-//!         NamedNode::new("https://rsp.rs/predicate")?, 
+//!         NamedNode::new("https://rsp.rs/predicate")?,
 //!         NamedNode::new("https://rsp.rs/object")?,    
 //!         GraphName::DefaultGraph,
 //!     );

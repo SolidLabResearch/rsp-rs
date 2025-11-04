@@ -2,14 +2,6 @@
 name = "rsp-rs"
 version = "0.1.0"
 edition = "2021"
-authors = ["Kush Bisen <kushbisen@example.com>"]
-description = "A high-performance RDF Stream Processing engine in Rust, supporting RSP-QL queries with sliding windows and real-time analytics"
-license = "MIT"
-repository = "https://github.com/argahsuknesib/rsp-rs"
-keywords = ["rdf", "sparql", "stream-processing", "rsp-ql", "real-time"]
-categories = ["database", "asynchronous", "data-structures"]
-documentation = "https://docs.rs/rsp-rs"
-homepage = "https://github.com/argahsuknesib/rsp-rs"
 
 [dependencies]
 oxigraph = "0.4"  # For RDF and SPARQL
