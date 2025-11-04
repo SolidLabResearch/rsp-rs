@@ -279,6 +279,8 @@ pub fn execute_query<'a>(
     for quad in &container.elements {
         store.insert(quad)?;
     }
-    let results = store.query(query).map_err(|e| Box::new(e) as Box<dyn std::error::Error>)?;
+    let results = store
+        .query(query)
+        .map_err(|e| Box::new(e) as Box<dyn std::error::Error>)?;
     Ok(results)
 }

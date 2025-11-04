@@ -27,7 +27,10 @@ impl R2ROperator {
     }
 
     /// Execute the SPARQL query over the container's quads combined with static data
-    pub fn execute(&self, container: &QuadContainer) -> Result<QueryResults, Box<dyn std::error::Error>> {
+    pub fn execute(
+        &self,
+        container: &QuadContainer,
+    ) -> Result<QueryResults, Box<dyn std::error::Error>> {
         // Create an in-memory store
         let store = Store::new()?;
 
@@ -58,7 +61,9 @@ impl R2ROperator {
         // 1. Preprocess the query to replace custom functions with SPARQL built-ins
         // 2. Use SPARQL BIND expressions with standard math operations
         // 3. Or implement a query rewriter
-        store.query(&self.query).map_err(|e| Box::new(e) as Box<dyn std::error::Error>)
+        store
+            .query(&self.query)
+            .map_err(|e| Box::new(e) as Box<dyn std::error::Error>)
     }
 
     /// Execute the SPARQL query and return results as a vector of solution mappings
