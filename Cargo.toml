@@ -1,7 +1,7 @@
 [package]
 name = "rsp-rs"
-version = "0.1.0"
-edition = "2025"
+version = "0.1.1"
+edition = "2024"
 authors = ["Kush Bisen <mailkushbisen@gmail.com>"]
 description = "A RDF Stream Processing engine in Rust, supporting RSP-QL queries with sliding windows and real-time analytics"
 license = "MIT"
