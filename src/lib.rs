@@ -47,19 +47,23 @@
 //! }
 //! ```
 
-mod csparql_window;
-mod parsed_query;
+mod engine;
+mod parsing;
 mod quad_container;
-mod r2r;
-mod rsp_engine;
-mod rspql_parser;
-mod window_instance;
+mod windowing;
+
+// Re-export modules for easier access
+pub use engine::*;
+pub use parsing::*;
+pub use windowing::*;
 
 // Public API exports
-pub use csparql_window::{execute_query, CSPARQLWindow, ReportStrategy, StreamType, Tick};
-pub use parsed_query::{Operator, ParsedQuery, WindowDefinition};
+pub use engine::r2r::R2ROperator;
+pub use engine::rsp_engine::{BindingWithTimestamp, RDFStream, RSPEngine};
+pub use parsing::parsed_query::{Operator, ParsedQuery, WindowDefinition};
+pub use parsing::rspql_parser::RSPQLParser;
 pub use quad_container::QuadContainer;
-pub use r2r::R2ROperator;
-pub use rsp_engine::{BindingWithTimestamp, RDFStream, RSPEngine};
-pub use rspql_parser::RSPQLParser;
-pub use window_instance::WindowInstance;
+pub use windowing::csparql_window::{
+    CSPARQLWindow, ReportStrategy, StreamType, Tick, execute_query,
+};
+pub use windowing::window_instance::WindowInstance;
