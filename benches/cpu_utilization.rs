@@ -28,7 +28,7 @@ fn get_cpu_metrics() -> (f32, usize) {
 /// Benchmark: CPU usage with varying data rates
 fn benchmark_cpu_usage_varying_rates(c: &mut Criterion) {
     let mut group = c.benchmark_group("cpu_usage_varying_rates");
-    group.sample_size(5);
+    group.sample_size(10);
 
     // Test with different quads per batch
     for quads_per_batch in [100, 500, 1000, 5000].iter() {
@@ -94,7 +94,7 @@ fn benchmark_cpu_usage_varying_rates(c: &mut Criterion) {
 /// Benchmark: CPU efficiency (QPS per CPU core)
 fn benchmark_cpu_efficiency(c: &mut Criterion) {
     let mut group = c.benchmark_group("cpu_efficiency");
-    group.sample_size(5);
+    group.sample_size(10);
     group.measurement_time(std::time::Duration::from_secs(15));
 
     group.bench_function("qps_per_core", |b| {
@@ -156,7 +156,7 @@ fn benchmark_cpu_efficiency(c: &mut Criterion) {
 /// Benchmark: CPU overhead with multiple windows
 fn benchmark_cpu_multi_window_overhead(c: &mut Criterion) {
     let mut group = c.benchmark_group("cpu_multi_window_overhead");
-    group.sample_size(3);
+    group.sample_size(10);
 
     for num_windows in [1, 2, 4].iter() {
         group.bench_with_input(
@@ -233,7 +233,7 @@ fn benchmark_cpu_multi_window_overhead(c: &mut Criterion) {
 /// Benchmark: CPU scalability - sustained high throughput
 fn benchmark_cpu_sustained_high_throughput(c: &mut Criterion) {
     let mut group = c.benchmark_group("cpu_sustained_high_throughput");
-    group.sample_size(3);
+    group.sample_size(10);
     group.measurement_time(std::time::Duration::from_secs(30));
 
     group.bench_function("sustained_high_throughput", |b| {

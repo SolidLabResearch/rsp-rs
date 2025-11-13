@@ -24,7 +24,7 @@ fn get_memory_usage_mb() -> f64 {
 /// Benchmark: Memory growth with increasing data volume
 fn benchmark_memory_growth(c: &mut Criterion) {
     let mut group = c.benchmark_group("memory_growth");
-    group.sample_size(3);
+    group.sample_size(10);
 
     // Test with different total quads processed
     for total_quads in [10_000, 50_000, 100_000].iter() {
@@ -93,7 +93,7 @@ fn benchmark_memory_growth(c: &mut Criterion) {
 /// Benchmark: Memory stability over sustained operations
 fn benchmark_memory_stability(c: &mut Criterion) {
     let mut group = c.benchmark_group("memory_stability");
-    group.sample_size(1);
+    group.sample_size(10);
     group.measurement_time(std::time::Duration::from_secs(30));
 
     group.bench_function("sustained_memory_operations", |b| {
@@ -171,7 +171,7 @@ fn benchmark_memory_stability(c: &mut Criterion) {
 /// Benchmark: Memory overhead of different window configurations
 fn benchmark_memory_window_overhead(c: &mut Criterion) {
     let mut group = c.benchmark_group("memory_window_overhead");
-    group.sample_size(5);
+    group.sample_size(10);
 
     for (width, slide) in [(1000, 500), (5000, 1000), (10000, 5000)].iter() {
         group.bench_with_input(
@@ -238,7 +238,7 @@ fn benchmark_memory_window_overhead(c: &mut Criterion) {
 /// Benchmark: Memory impact with multiple concurrent streams
 fn benchmark_memory_multi_stream(c: &mut Criterion) {
     let mut group = c.benchmark_group("memory_multi_stream");
-    group.sample_size(3);
+    group.sample_size(10);
 
     for num_streams in [1, 2, 4].iter() {
         group.bench_with_input(

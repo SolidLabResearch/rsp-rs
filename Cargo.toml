@@ -1,6 +1,6 @@
 [package]
 name = "rsp-rs"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2024"
 authors = ["Kush Bisen <mailkushbisen@gmail.com>"]
 description = "A RDF Stream Processing engine in Rust, supporting RSP-QL queries with sliding windows and real-time analytics"
@@ -35,4 +35,12 @@ harness = false
 
 [[bench]]
 name = "r2r_operator"
+harness = false
+
+[[bench]]
+name = "end_to_end_latency"
+harness = false
+
+[[bench]]
+name = "resource_utilization"
 harness = false
