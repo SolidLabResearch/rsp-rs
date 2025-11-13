@@ -1,6 +1,6 @@
 # RSP-RS
 
-An RDF Stream Processing Engine in Rust built on top of [Oxigraph](https://github.com/oxigraph/oxigraph/) for SPARQL querying and [Tokio](https://tokio.rs/) for async processing.
+An RDF Stream Processing Engine in Rust built on top of [Oxigraph](https://github.com/oxigraph/oxigraph/) for SPARQL querying with multi-threaded stream processing.
 
 ## Installation
 
@@ -8,7 +8,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-rsp-rs = "0.1.0"
+rsp-rs = "0.2.0"
 ```
 
 Or install with cargo:
@@ -73,10 +73,8 @@ Here's a complete example:
 ```rust
 use oxigraph::model::*;
 use rsp_rs::RSPEngine;
-use tokio;
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let query = r#"
         PREFIX ex: <https://rsp.rs/>
         REGISTER RStream <output> AS
@@ -87,20 +85,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     "#;
 
-    let mut rsp_engine = RSPEngine::new(query);
+    let mut rsp_engine = RSPEngine::new(query.to_string());
     rsp_engine.initialize()?;
 
     let stream = rsp_engine.get_stream("https://rsp.rs/stream1").unwrap();
 
     // Start processing and get results receiver
-    let mut result_receiver = rsp_engine.start_processing();
+    let result_receiver = rsp_engine.start_processing();
 
     // Generate some test data
-    generate_data(10, stream).await;
+    generate_data(10, &stream);
 
     // Collect results
     let mut results = Vec::new();
-    while let Some(result) = result_receiver.recv().await {
+    while let Ok(result) = result_receiver.recv() {
         println!("Received result: {}", result.bindings);
         results.push(result.bindings);
     }
@@ -109,7 +107,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-async fn generate_data(num_events: usize, stream: &rsp_rs::RDFStream) {
+fn generate_data(num_events: usize, stream: &rsp_rs::RDFStream) {
     for i in 0..num_events {
         let quad = Quad::new(
             NamedNode::new(&format!("https://rsp.rs/test_subject_{}", i)).unwrap(),
@@ -119,7 +117,7 @@ async fn generate_data(num_events: usize, stream: &rsp_rs::RDFStream) {
         );
 
         stream.add_quads(vec![quad], i as i64).unwrap();
-        tokio::time::sleep(tokio::time::Duration::from_millis(10)).await;
+        std::thread::sleep(std::time::Duration::from_millis(10));
     }
 }
 ```
@@ -130,7 +128,7 @@ async fn generate_data(num_events: usize, stream: &rsp_rs::RDFStream) {
 - **Multiple Windows**: Support for multiple sliding/tumbling windows
 - **Stream-Static Joins**: Join streaming data with static background knowledge
 - **SPARQL Aggregations**: COUNT, AVG, MIN, MAX, SUM with GROUP BY
-- **Async Processing**: Built on Tokio for high-performance async processing
+- **Multi-threaded Processing**: Efficient concurrent stream processing using standard Rust threads
 - **Named Graphs**: Full support for RDF named graphs in queries
 - **Real-time Results**: Continuous query evaluation with RStream/IStream/DStream semantics
 
@@ -154,7 +152,7 @@ cargo test --test integration_tests
 
 - `new(query: String)` - Create a new RSP engine with RSP-QL query
 - `initialize()` - Initialize windows and streams from the query
-- `start_processing()` - Start async processing and return results receiver
+- `start_processing()` - Start processing and return results receiver channel
 - `get_stream(name: &str)` - Get a stream by name for adding data
 - `add_static_data(quad: Quad)` - Add static background knowledge
 

@@ -1,6 +1,6 @@
 [package]
 name = "rsp-rs"
-version = "0.1.2"
+version = "0.2.0"
 edition = "2024"
 authors = ["Kush Bisen <mailkushbisen@gmail.com>"]
 description = "A RDF Stream Processing engine in Rust, supporting RSP-QL queries with sliding windows and real-time analytics"
@@ -13,6 +13,26 @@ homepage = "https://github.com/argahsuknesib/rsp-rs"
 
 [dependencies]
 oxigraph = "0.5"  # For RDF and SPARQL
-tokio = { version = "1", features = ["rt-multi-thread", "sync", "macros", "time"] }  # For async streams and tasks
-async-trait = "0.1"  # For async traits
 regex = "1"  # For regular expression parsing
+
+[dev-dependencies]
+criterion = { version = "0.5", features = ["html_reports"] }  # For benchmarking
+pprof = { version = "0.13", features = ["criterion", "flamegraph"] }  # For CPU profiling
+sysinfo = "0.31"  # For CPU and memory metrics
+num_cpus = "1.16"  # For CPU count detection
+
+[[bench]]
+name = "streaming_throughput"
+harness = false
+
+[[bench]]
+name = "memory_profile"
+harness = false
+
+[[bench]]
+name = "cpu_utilization"
+harness = false
+
+[[bench]]
+name = "r2r_operator"
+harness = false

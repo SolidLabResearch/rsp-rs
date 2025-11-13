@@ -208,8 +208,8 @@ impl CSPARQLWindow {
         match self.report {
             ReportStrategy::OnWindowClose => window.close < timestamp,
             ReportStrategy::NonEmptyContent => !_content.is_empty(),
-            ReportStrategy::OnContentChange => true, // Would need to track changes
-            ReportStrategy::Periodic => true,        // Would need to implement periodic logic
+            ReportStrategy::OnContentChange => true, // TODO : Tracking content changes needed here but for now always true as a placeholder for future implementation
+            ReportStrategy::Periodic => true, // TODO : Implement periodic reporting logic here as content is always true for now
         }
     }
 
@@ -279,8 +279,11 @@ pub fn execute_query<'a>(
     for quad in &container.elements {
         store.insert(quad)?;
     }
-    let results = store
-        .query(query)
+    use oxigraph::sparql::SparqlEvaluator;
+    let results = SparqlEvaluator::new()
+        .parse_query(query)?
+        .on_store(&store)
+        .execute()
         .map_err(|e| Box::new(e) as Box<dyn std::error::Error>)?;
     Ok(results)
 }

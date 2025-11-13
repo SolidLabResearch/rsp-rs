@@ -1,4 +1,5 @@
 use oxigraph::model::*;
+use oxigraph::sparql::SparqlEvaluator;
 use oxigraph::store::Store;
 
 #[test]
@@ -24,7 +25,12 @@ fn test_oxigraph_basic_query() {
         }
     "#;
 
-    let results = store.query(query).unwrap();
+    let results = SparqlEvaluator::new()
+        .parse_query(query)
+        .unwrap()
+        .on_store(&store)
+        .execute()
+        .unwrap();
 
     if let oxigraph::sparql::QueryResults::Solutions(solutions) = results {
         let count = solutions.count();
@@ -62,7 +68,12 @@ fn test_oxigraph_named_graph_query() {
         }
     "#;
 
-    let results = store.query(query).unwrap();
+    let results = SparqlEvaluator::new()
+        .parse_query(query)
+        .unwrap()
+        .on_store(&store)
+        .execute()
+        .unwrap();
 
     if let oxigraph::sparql::QueryResults::Solutions(solutions) = results {
         let count = solutions.count();

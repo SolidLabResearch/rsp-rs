@@ -7,7 +7,7 @@
 //! - RSP-QL syntax support for continuous queries
 //! - Sliding and tumbling window semantics
 //! - SPARQL aggregation functions (COUNT, AVG, MIN, MAX, SUM)
-//! - Real-time stream processing with async/await
+//! - Real-time stream processing with multi-threading
 //! - Integration with static background knowledge
 //!
 //! ## Example
@@ -16,8 +16,7 @@
 //! use rsp_rs::RSPEngine;
 //! use oxigraph::model::*;
 //!
-//! #[tokio::main]
-//! async fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! fn main() -> Result<(), Box<dyn std::error::Error>> {
 //!     let query = r#"
 //!         PREFIX ex: <https://rsp.rs/>
 //!         REGISTER RStream <output> AS

@@ -61,8 +61,11 @@ impl R2ROperator {
         // 1. Preprocess the query to replace custom functions with SPARQL built-ins
         // 2. Use SPARQL BIND expressions with standard math operations
         // 3. Or implement a query rewriter
-        store
-            .query(&self.query)
+        use oxigraph::sparql::SparqlEvaluator;
+        SparqlEvaluator::new()
+            .parse_query(&self.query)?
+            .on_store(&store)
+            .execute()
             .map_err(|e| Box::new(e) as Box<dyn std::error::Error>)
     }
 

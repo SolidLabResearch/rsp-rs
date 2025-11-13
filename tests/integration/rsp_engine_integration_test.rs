@@ -1,8 +1,9 @@
 use oxigraph::model::*;
 use rsp_rs::RSPEngine;
+use std::time::{Duration, Instant};
 
-#[tokio::test]
-async fn test_rsp_engine_basic() {
+#[test]
+fn test_rsp_engine_basic() {
     let query = r#"
         REGISTER RStream <http://example.org/output> AS
         PREFIX ex: <http://example.org/>
@@ -34,7 +35,7 @@ async fn test_rsp_engine_basic() {
     ));
 
     // Start processing (this spawns background tasks)
-    let mut result_receiver = engine.start_processing();
+    let result_receiver = engine.start_processing();
 
     // Get the stream to add data to
     let stream_name = "http://example.org/temperatureStream";
@@ -58,27 +59,26 @@ async fn test_rsp_engine_basic() {
                 .add_quads(quads, timestamp)
                 .expect("Adding quads should succeed");
 
-            tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+            std::thread::sleep(Duration::from_millis(100));
         }
     }
 
     // Listen for results with timeout
     let mut count = 0;
     let max_results = 5;
-    let timeout = tokio::time::Duration::from_secs(2);
-    let start = tokio::time::Instant::now();
+    let timeout = Duration::from_secs(2);
+    let start = Instant::now();
 
     while count < max_results && start.elapsed() < timeout {
-        tokio::select! {
-            result = result_receiver.recv() => {
-                if let Some(_binding_result) = result {
-                    count += 1;
-                } else {
-                    break;
-                }
+        match result_receiver.recv_timeout(Duration::from_millis(100)) {
+            Ok(_binding_result) => {
+                count += 1;
             }
-            _ = tokio::time::sleep(tokio::time::Duration::from_millis(100)) => {
+            Err(std::sync::mpsc::RecvTimeoutError::Timeout) => {
                 // Continue waiting
+            }
+            Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => {
+                break;
             }
         }
     }

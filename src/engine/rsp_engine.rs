@@ -3,8 +3,8 @@ use crate::rspql_parser::RSPQLParser;
 use crate::{CSPARQLWindow, QuadContainer, R2ROperator};
 use oxigraph::model::Quad;
 use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
-use tokio::sync::mpsc;
+use std::sync::{Arc, Mutex, mpsc};
+use std::thread;
 
 /// Represents a binding result with timestamp information
 #[derive(Debug, Clone)]
@@ -17,14 +17,11 @@ pub struct BindingWithTimestamp {
 /// Represents an RDF stream that feeds data into a window
 pub struct RDFStream {
     pub name: String,
-    pub(crate) window_sender: mpsc::UnboundedSender<(QuadContainer, String)>,
+    pub(crate) window_sender: mpsc::Sender<(QuadContainer, String)>,
 }
 
 impl RDFStream {
-    pub fn new(
-        name: String,
-        window_sender: mpsc::UnboundedSender<(QuadContainer, String)>,
-    ) -> Self {
+    pub fn new(name: String, window_sender: mpsc::Sender<(QuadContainer, String)>) -> Self {
         Self {
             name,
             window_sender,
@@ -86,7 +83,7 @@ impl RSPEngine {
     pub fn initialize(&mut self) -> Result<(), String> {
         // Create windows and streams based on parsed query
         for window_def in &self.parsed_query.s2r {
-            let (tx, mut rx) = mpsc::unbounded_channel::<(QuadContainer, String)>();
+            let (tx, rx) = mpsc::channel::<(QuadContainer, String)>();
 
             // Create window with full parameters
             let window = Arc::new(Mutex::new(CSPARQLWindow::new(
@@ -106,10 +103,10 @@ impl RSPEngine {
                 .insert(window_def.window_name.clone(), window.clone());
             self.streams.insert(window_def.stream_name.clone(), stream);
 
-            // Spawn task to handle incoming data
+            // Spawn thread to handle incoming data
             let window_clone = window.clone();
-            tokio::spawn(async move {
-                while let Some((container, _stream_name)) = rx.recv().await {
+            thread::spawn(move || {
+                while let Ok((container, _stream_name)) = rx.recv() {
                     let mut win = window_clone.lock().unwrap();
                     // Add all quads from the container to the window
                     for quad in &container.elements {
@@ -128,8 +125,8 @@ impl RSPEngine {
         windows: HashMap<String, Arc<Mutex<CSPARQLWindow>>>,
         r2r: R2ROperator,
         window_defs: Vec<WindowDefinition>,
-    ) -> mpsc::UnboundedReceiver<BindingWithTimestamp> {
-        let (tx, rx) = mpsc::unbounded_channel();
+    ) -> mpsc::Receiver<BindingWithTimestamp> {
+        let (tx, rx) = mpsc::channel();
 
         // For each window, subscribe to its RStream output
         for (window_name, window_arc) in windows.iter() {
@@ -189,7 +186,7 @@ impl RSPEngine {
     }
 
     /// Convenience method to register using the engine's own data
-    pub fn start_processing(&self) -> mpsc::UnboundedReceiver<BindingWithTimestamp> {
+    pub fn start_processing(&self) -> mpsc::Receiver<BindingWithTimestamp> {
         Self::register(
             self.windows.clone(),
             self.r2r.clone(),
@@ -244,8 +241,8 @@ mod tests {
         assert_eq!(engine.parsed_query.s2r.len(), 1);
     }
 
-    #[tokio::test]
-    async fn test_initialize_engine() {
+    #[test]
+    fn test_initialize_engine() {
         let query = r#"
             REGISTER RStream <http://example.org/output> AS
             PREFIX ex: <http://example.org/>
