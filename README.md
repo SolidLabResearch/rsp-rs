@@ -55,7 +55,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-rsp-rs = "0.3.0"
+rsp-rs = "0.3.1"
 ```
 
 Or install with cargo:

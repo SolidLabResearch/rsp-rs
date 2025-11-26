@@ -5,7 +5,39 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.3.0] - 2024-01-XX
+## [0.3.1] - 2024-11-26
+
+### Fixed
+
+**Critical Bug Fix: Graph Name Mismatch**
+
+- **Issue**: RSP-QL queries transform `WINDOW ex:w1 { ?s ?p ?o }` to `GRAPH ex:w1 { ?s ?p ?o }`, but quads were stored with `graph_name: DefaultGraph`, causing queries to return no results
+- **Fix**: Quads are now automatically assigned to the window's graph name when added to the window
+- **Impact**: Query results now work correctly - this fixes a critical bug where WINDOW clauses would not match any quads
+- **File**: `src/windowing/csparql_window.rs` - Modified `add()` method to rewrite quad graph names
+
+### Added
+
+- **Test**: `test_window_graph_names` - Verifies that quads are correctly assigned to window graphs and query results are returned
+
+### Technical Details
+
+When a quad is added to a window via `CSPARQLWindow::add()`, it is now rewritten to use the window's name as its graph:
+
+```rust
+let quad_with_window_graph = Quad::new(
+    quad.subject.clone(),
+    quad.predicate.clone(),
+    quad.object.clone(),
+    GraphName::NamedNode(NamedNode::new(&self.name).unwrap()),
+);
+```
+
+This ensures that when the SPARQL query looks for quads in `GRAPH ex:w1`, it finds them.
+
+---
+
+## [0.3.0] - 2024-11-26
 
 ### Added
 
@@ -96,6 +128,7 @@ Previous version features and changes.
 
 Initial stable release with core RSP-QL functionality.
 
+[0.3.1]: https://github.com/argahsuknesib/rsp-rs/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/argahsuknesib/rsp-rs/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/argahsuknesib/rsp-rs/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/argahsuknesib/rsp-rs/releases/tag/v0.2.0

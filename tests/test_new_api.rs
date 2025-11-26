@@ -243,3 +243,57 @@ fn test_streaming_with_close() {
     // In a working scenario, we should receive results
     let _count = rx.recv_timeout(Duration::from_secs(3)).unwrap();
 }
+
+#[test]
+fn test_window_graph_names() {
+    // This test verifies that quads are assigned to the window's graph
+    // so they match the SPARQL GRAPH clause generated from WINDOW clause
+    let query = r#"
+        PREFIX ex: <http://example.org/>
+        REGISTER RStream <output> AS
+        SELECT ?s ?p ?o
+        FROM NAMED WINDOW ex:w1 ON STREAM ex:stream1 [RANGE 1000 STEP 200]
+        WHERE {
+            WINDOW ex:w1 { ?s ?p ?o }
+        }
+    "#;
+
+    let mut engine = RSPEngine::new(query.to_string());
+    engine.initialize().unwrap();
+
+    let receiver = engine.start_processing();
+    let stream = engine.get_stream("http://example.org/stream1").unwrap();
+
+    // Add one quad with DefaultGraph (the bug scenario)
+    let quad = Quad::new(
+        NamedNode::new("http://ex.org/s").unwrap(),
+        NamedNode::new("http://ex.org/p").unwrap(),
+        Literal::new_simple_literal("o"),
+        GraphName::DefaultGraph, // Note: DefaultGraph!
+    );
+    stream.add_quads(vec![quad], 100).unwrap();
+
+    // Trigger window closure with another event at t=2000
+    let sentinel = Quad::new(
+        NamedNode::new("http://ex.org/final").unwrap(),
+        NamedNode::new("http://ex.org/p").unwrap(),
+        Literal::new_simple_literal("final"),
+        GraphName::DefaultGraph,
+    );
+    stream.add_quads(vec![sentinel], 2000).unwrap();
+
+    // Wait and collect results
+    thread::sleep(Duration::from_millis(500));
+
+    let mut results = Vec::new();
+    while let Ok(result) = receiver.recv_timeout(Duration::from_millis(100)) {
+        results.push(result);
+    }
+
+    println!("Received {} results", results.len());
+    assert!(
+        !results.is_empty(),
+        "Should receive results after graph name fix! Got {} results",
+        results.len()
+    );
+}

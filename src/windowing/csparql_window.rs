@@ -96,6 +96,20 @@ impl CSPARQLWindow {
             );
         }
 
+        // Create a new quad with the window's graph name
+        // This ensures the quad's graph matches the SPARQL query's GRAPH clause
+        let quad_with_window_graph = oxigraph::model::Quad::new(
+            quad.subject.clone(),
+            quad.predicate.clone(),
+            quad.object.clone(),
+            oxigraph::model::GraphName::NamedNode(
+                oxigraph::model::NamedNode::new(&self.name).unwrap_or_else(|_| {
+                    // Fallback if window name isn't a valid IRI
+                    oxigraph::model::NamedNode::new("http://default-window").unwrap()
+                }),
+            ),
+        );
+
         let mut to_evict = Vec::new();
         let t_e = timestamp;
 
@@ -110,7 +124,7 @@ impl CSPARQLWindow {
             if self.debug_mode {
                 eprintln!(
                     "[WINDOW {}] Processing Window [{},{}) for element ({:?},{})",
-                    self.name, window.open, window.close, quad, timestamp
+                    self.name, window.open, window.close, quad_with_window_graph, timestamp
                 );
             }
 
@@ -121,7 +135,7 @@ impl CSPARQLWindow {
                         self.name, window.open, window.close
                     );
                 }
-                container.add(quad.clone(), timestamp);
+                container.add(quad_with_window_graph.clone(), timestamp);
                 if self.debug_mode {
                     eprintln!(
                         "[WINDOW {}] Window [{},{}) now has {} quads",
