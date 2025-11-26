@@ -43,6 +43,7 @@ pub struct CSPARQLWindow {
     pub report: ReportStrategy,
     pub tick: Tick,
     callbacks: HashMap<StreamType, Vec<WindowCallback>>,
+    pub debug_mode: bool,
 }
 
 impl CSPARQLWindow {
@@ -64,6 +65,7 @@ impl CSPARQLWindow {
             t0: start_time,
             active_windows: HashMap::new(),
             callbacks: HashMap::new(),
+            debug_mode: false,
         }
     }
 
@@ -87,11 +89,12 @@ impl CSPARQLWindow {
 
     /// Add a quad to the window at the given timestamp
     pub fn add(&mut self, quad: Quad, timestamp: i64) {
-        #[cfg(debug_assertions)]
-        println!(
-            "Window {} Received element ({:?},{}) ",
-            self.name, quad, timestamp
-        );
+        if self.debug_mode {
+            eprintln!(
+                "[WINDOW {}] Received element ({:?},{}) ",
+                self.name, quad, timestamp
+            );
+        }
 
         let mut to_evict = Vec::new();
         let t_e = timestamp;
@@ -104,53 +107,65 @@ impl CSPARQLWindow {
 
         // Add element to appropriate windows
         for (window, container) in &mut self.active_windows {
-            #[cfg(debug_assertions)]
-            println!(
-                "Processing Window {} [{},{}) for element ({:?},{})",
-                self.name, window.open, window.close, quad, timestamp
-            );
+            if self.debug_mode {
+                eprintln!(
+                    "[WINDOW {}] Processing Window [{},{}) for element ({:?},{})",
+                    self.name, window.open, window.close, quad, timestamp
+                );
+            }
 
             if window.open <= t_e && t_e < window.close {
-                #[cfg(debug_assertions)]
-                println!(
-                    "Adding element to Window [{},{})",
-                    window.open, window.close
-                );
+                if self.debug_mode {
+                    eprintln!(
+                        "[WINDOW {}] Adding element to Window [{},{})",
+                        self.name, window.open, window.close
+                    );
+                }
                 container.add(quad.clone(), timestamp);
-                #[cfg(debug_assertions)]
-                println!(
-                    "Window [{},{}) now has {} quads",
-                    window.open,
-                    window.close,
-                    container.len()
-                );
+                if self.debug_mode {
+                    eprintln!(
+                        "[WINDOW {}] Window [{},{}) now has {} quads",
+                        self.name,
+                        window.open,
+                        window.close,
+                        container.len()
+                    );
+                }
             } else if t_e >= window.close {
-                #[cfg(debug_assertions)]
-                println!("Scheduling for Eviction [{},{})", window.open, window.close);
+                if self.debug_mode {
+                    eprintln!(
+                        "[WINDOW {}] Scheduling for Eviction [{},{})",
+                        self.name, window.open, window.close
+                    );
+                }
                 // Don't add to eviction list yet - windows need to report before being evicted
                 // to_evict.push(window.clone());
             }
         }
 
         // Find the window to report
-        #[cfg(debug_assertions)]
-        println!(
-            "Active windows before reporting check: {}",
-            self.active_windows.len()
-        );
+        if self.debug_mode {
+            eprintln!(
+                "[WINDOW {}] Active windows before reporting check: {}",
+                self.name,
+                self.active_windows.len()
+            );
+        }
 
         let mut max_window: Option<WindowInstance> = None;
         let mut max_time = 0i64;
 
         for (window, container) in &self.active_windows {
             if self.compute_report(window, container, timestamp) {
-                #[cfg(debug_assertions)]
-                println!(
-                    "Window [{},{}) should report (has {} quads)",
-                    window.open,
-                    window.close,
-                    container.len()
-                );
+                if self.debug_mode {
+                    eprintln!(
+                        "[WINDOW {}] Window [{},{}) should report (has {} quads)",
+                        self.name,
+                        window.open,
+                        window.close,
+                        container.len()
+                    );
+                }
                 if window.close > max_time {
                     max_time = window.close;
                     max_window = Some(window.clone());
@@ -162,29 +177,34 @@ impl CSPARQLWindow {
 
         // Emit window content if conditions are met
         if let Some(window) = max_window {
-            #[cfg(debug_assertions)]
-            println!(
-                "Max window selected for reporting: [{},{})",
-                window.open, window.close
-            );
+            if self.debug_mode {
+                eprintln!(
+                    "[WINDOW {}] Max window selected for reporting: [{},{})",
+                    self.name, window.open, window.close
+                );
+            }
             if self.tick == Tick::TimeDriven {
                 if timestamp > self.time {
                     self.time = timestamp;
                     if let Some(content) = self.active_windows.get(&window) {
-                        #[cfg(debug_assertions)]
-                        println!(
-                            "Window [{},{}),triggers. Content: {} quads",
-                            window.open,
-                            window.close,
-                            content.len()
-                        );
+                        if self.debug_mode {
+                            eprintln!(
+                                "[WINDOW {}] Emitting {} quads at t={} for window [{},{})",
+                                self.name,
+                                content.len(),
+                                timestamp,
+                                window.open,
+                                window.close
+                            );
+                        }
                         self.emit(StreamType::RStream, content.clone());
                     } else {
-                        #[cfg(debug_assertions)]
-                        println!(
-                            "ERROR: Window [{},{}) not found in active_windows!",
-                            window.open, window.close
-                        );
+                        if self.debug_mode {
+                            eprintln!(
+                                "[WINDOW {}] ERROR: Window [{},{}) not found in active_windows!",
+                                self.name, window.open, window.close
+                            );
+                        }
                     }
                 }
             }
@@ -192,8 +212,12 @@ impl CSPARQLWindow {
 
         // Evict old windows
         for window in to_evict {
-            #[cfg(debug_assertions)]
-            println!("Evicting [{},{})", window.open, window.close);
+            if self.debug_mode {
+                eprintln!(
+                    "[WINDOW {}] Evicting [{},{})",
+                    self.name, window.open, window.close
+                );
+            }
             self.active_windows.remove(&window);
         }
     }
@@ -222,15 +246,22 @@ impl CSPARQLWindow {
         let c_sup = ((t_e - self.t0).abs() as f64 / self.slide as f64).ceil() as i64 * self.slide;
         let mut o_i = c_sup - self.width;
 
-        #[cfg(debug_assertions)]
-        println!(
-            "Calculating the Windows to Open. First one opens at [{}] and closes at [{}]",
-            o_i, c_sup
-        );
+        if self.debug_mode {
+            eprintln!(
+                "[WINDOW {}] Calculating the Windows to Open. First one opens at [{}] and closes at [{}]",
+                self.name, o_i, c_sup
+            );
+        }
 
         while o_i <= t_e {
-            #[cfg(debug_assertions)]
-            println!("Computing Window [{},{}) if absent", o_i, o_i + self.width);
+            if self.debug_mode {
+                eprintln!(
+                    "[WINDOW {}] Computing Window [{},{}) if absent",
+                    self.name,
+                    o_i,
+                    o_i + self.width
+                );
+            }
 
             let window = WindowInstance::new(o_i, o_i + self.width);
             self.compute_window_if_absent(window);
@@ -266,6 +297,24 @@ impl CSPARQLWindow {
     /// Get content from window at specific timestamp (alternative method name for compatibility)
     pub fn get_content_from_window(&self, timestamp: i64) -> Option<&QuadContainer> {
         self.get_content(timestamp)
+    }
+
+    /// Get the current number of active windows
+    pub fn get_active_window_count(&self) -> usize {
+        self.active_windows.len()
+    }
+
+    /// Get the timestamp range of active windows
+    pub fn get_active_window_ranges(&self) -> Vec<(i64, i64)> {
+        self.active_windows
+            .iter()
+            .map(|(window, _)| (window.open, window.close))
+            .collect()
+    }
+
+    /// Enable or disable debug mode for verbose logging
+    pub fn set_debug_mode(&mut self, enabled: bool) {
+        self.debug_mode = enabled;
     }
 }
 

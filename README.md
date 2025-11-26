@@ -2,13 +2,60 @@
 
 An RDF Stream Processing Engine in Rust built on top of [Oxigraph](https://github.com/oxigraph/oxigraph/) for SPARQL querying with multi-threaded stream processing.
 
+## When Are Results Emitted?
+
+**Important:** Results are emitted when windows **close**, which happens when:
+1. A new event arrives with a **timestamp** > window end time
+2. The window's STEP interval is reached **based on event timestamps**
+
+**Key Concept:** Window closure is driven by **event timestamps**, NOT wall-clock time!
+The system doesn't use timers - it only processes events when you call `add_quads()`.
+
+### Example with RANGE 10000 STEP 2000:
+
+```text
+- Events with timestamp=0, 500, 1000, 1500 are added to windows
+- No results yet (windows still open)
+- Event with timestamp=2000 arrives → closes window [-8000, 2000) → results emitted
+- Event with timestamp=4000 arrives → closes window [-6000, 4000) → results emitted
+
+Note: Wall-clock time doesn't matter! You could add all these events instantly,
+but results only emit when an event's TIMESTAMP triggers window closure.
+```
+
+**Important:** If your last event has timestamp=1500, NO results will be emitted because no subsequent event with a higher timestamp triggered window closure. Use `close_stream()` to add a "sentinel" event with a future timestamp to trigger remaining window closures.
+
+### Understanding Window Lifecycle
+
+Windows don't emit results when events arrive - they emit when **closed** by future events.
+
+**Critical:** The timeline below shows EVENT TIMESTAMPS (not wall-clock time):
+
+**Timeline Example (RANGE 10000, STEP 2000):**
+
+```text
+Event with timestamp=0:     Added to window
+Event with timestamp=1000:  More events added to window
+Event with timestamp=2000:  → window [-8000, 2000) closes → RESULTS EMITTED
+Event with timestamp=4000:  → window [-6000, 4000) closes → RESULTS EMITTED
+Event with timestamp=6000:  → window [-4000, 6000) closes → RESULTS EMITTED
+...
+Event with timestamp=15000: Last event added to stream
+                            NO MORE RESULTS (no event to trigger closure!)
+
+Solution: Call close_stream("stream_uri", 20000) to emit final results
+
+Note: You can add ALL these events in 1 millisecond of real time! The system only
+cares about the timestamps you provide, not how fast you send events.
+```
+
 ## Installation
 
 Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-rsp-rs = "0.2.0"
+rsp-rs = "0.3.0"
 ```
 
 Or install with cargo:
@@ -47,13 +94,13 @@ Initialize the engine to create windows and streams:
 rsp_engine.initialize()?;
 ```
 
-You can add stream elements to the RSPEngine using streams. First get a stream reference:
+You can add stream elements to the RSPEngine using streams. First get a stream (returns a clone that you can store and reuse):
 
 ```rust
 let stream = rsp_engine.get_stream("https://rsp.rs/stream1").unwrap();
 ```
 
-Then add quads with timestamps:
+Then add quads with timestamps (these are EVENT timestamps, not wall-clock time):
 
 ```rust
 use oxigraph::model::*;
@@ -65,6 +112,7 @@ let quad = Quad::new(
     GraphName::DefaultGraph,
 );
 
+// The timestamp parameter is the EVENT timestamp, not wall-clock time
 stream.add_quads(vec![quad], timestamp_value)?;
 ```
 
@@ -79,7 +127,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         PREFIX ex: <https://rsp.rs/>
         REGISTER RStream <output> AS
         SELECT *
-        FROM NAMED WINDOW ex:w1 ON STREAM ex:stream1 [RANGE 10 STEP 2]
+        FROM NAMED WINDOW ex:w1 ON STREAM ex:stream1 [RANGE 10000 STEP 2000]
         WHERE {
             WINDOW ex:w1 { ?s ?p ?o }
         }
@@ -88,6 +136,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut rsp_engine = RSPEngine::new(query.to_string());
     rsp_engine.initialize()?;
 
+    // Get a cloned stream (can be stored and reused)
     let stream = rsp_engine.get_stream("https://rsp.rs/stream1").unwrap();
 
     // Start processing and get results receiver
@@ -96,10 +145,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Generate some test data
     generate_data(10, &stream);
 
+    // IMPORTANT: Close the stream to emit final results
+    // This adds a sentinel event with timestamp=20000 to trigger window closures
+    rsp_engine.close_stream("https://rsp.rs/stream1", 20000)?;
+
     // Collect results
     let mut results = Vec::new();
     while let Ok(result) = result_receiver.recv() {
-        println!("Received result: {}", result.bindings);
+        println!("Received result: {} (window: {} to {})",
+                 result.bindings,
+                 result.timestamp_from,
+                 result.timestamp_to);
         results.push(result.bindings);
     }
 
@@ -116,9 +172,32 @@ fn generate_data(num_events: usize, stream: &rsp_rs::RDFStream) {
             GraphName::DefaultGraph,
         );
 
-        stream.add_quads(vec![quad], i as i64).unwrap();
+        // Event timestamp = i * 1000 (0, 1000, 2000, ...)
+        // The sleep is just to slow down the example - the system only cares about timestamps!
+        stream.add_quads(vec![quad], (i * 1000) as i64).unwrap();
         std::thread::sleep(std::time::Duration::from_millis(10));
     }
+}
+```
+
+## Debugging Window Behavior
+
+You can inspect window state for debugging:
+
+```rust
+if let Some(window) = rsp_engine.get_window("window_name") {
+    let mut window_lock = window.lock().unwrap();
+
+    // Check how many windows are active
+    println!("Active windows: {}", window_lock.get_active_window_count());
+
+    // See the time ranges of active windows
+    for (start, end) in window_lock.get_active_window_ranges() {
+        println!("Window: [{}, {})", start, end);
+    }
+
+    // Enable verbose debug logging (useful for understanding window lifecycle)
+    window_lock.set_debug_mode(true);
 }
 ```
 
@@ -131,6 +210,9 @@ fn generate_data(num_events: usize, stream: &rsp_rs::RDFStream) {
 - **Multi-threaded Processing**: Efficient concurrent stream processing using standard Rust threads
 - **Named Graphs**: Full support for RDF named graphs in queries
 - **Real-time Results**: Continuous query evaluation with RStream/IStream/DStream semantics
+- **Cloneable Streams**: Stream references can be cloned and stored for easier API usage
+- **Window Inspection**: Debug methods for understanding window state and lifecycle
+- **Stream Closure**: Explicit `close_stream()` method to trigger final window emissions
 
 ## Testing
 
@@ -283,14 +365,26 @@ open target/criterion/report/index.html
 - `new(query: String)` - Create a new RSP engine with RSP-QL query
 - `initialize()` - Initialize windows and streams from the query
 - `start_processing()` - Start processing and return results receiver channel
-- `get_stream(name: &str)` - Get a stream by name for adding data
+- `get_stream(name: &str)` - Get a cloned stream by name for adding data
+- `close_stream(uri: &str, timestamp: i64)` - Add sentinel event to close all windows and emit final results
 - `add_static_data(quad: Quad)` - Add static background knowledge
+- `get_window(name: &str)` - Get a window reference for inspection/debugging</parameter>
+
+### RDFStream
+
+- `new(name, sender)` - Create a new RDF stream
+- `add(container)` - Add a quad container to the stream
+- `add_quads(quads, timestamp)` - Add quads with a timestamp (preferred method)
+- **Cloneable**: Stream can be cloned and stored for reuse
 
 ### CSPARQLWindow
 
 - `new(name, range, slide, strategy, tick, start_time)` - Create a window
 - `add(quad, timestamp)` - Add a quad to the window
 - `subscribe(stream_type, callback)` - Subscribe to window emissions
+- `get_active_window_count()` - Get the number of currently active windows
+- `get_active_window_ranges()` - Get time ranges of all active windows
+- `set_debug_mode(enabled)` - Enable/disable verbose debug logging
 
 ### R2ROperator
 

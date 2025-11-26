@@ -15,6 +15,7 @@ pub struct BindingWithTimestamp {
 }
 
 /// Represents an RDF stream that feeds data into a window
+#[derive(Clone)]
 pub struct RDFStream {
     pub name: String,
     pub(crate) window_sender: mpsc::Sender<(QuadContainer, String)>,
@@ -194,9 +195,9 @@ impl RSPEngine {
         )
     }
 
-    /// Get a stream by name
-    pub fn get_stream(&self, stream_name: &str) -> Option<&RDFStream> {
-        self.streams.get(stream_name)
+    /// Get a stream by name (returns a clone for easier usage)
+    pub fn get_stream(&self, stream_name: &str) -> Option<RDFStream> {
+        self.streams.get(stream_name).cloned()
     }
 
     /// Add static data to the R2R operator
@@ -207,6 +208,26 @@ impl RSPEngine {
     /// Get all stream names
     pub fn get_all_streams(&self) -> Vec<String> {
         self.streams.keys().cloned().collect()
+    }
+
+    /// Add a sentinel event to trigger closure of all open windows
+    /// This should be called when the stream ends to emit final results
+    pub fn close_stream(&self, stream_uri: &str, final_timestamp: i64) -> Result<(), String> {
+        if let Some(stream) = self.get_stream(stream_uri) {
+            // Add a dummy quad with timestamp far in the future
+            let sentinel = oxigraph::model::Quad::new(
+                oxigraph::model::NamedNode::new("urn:rsp:sentinel")
+                    .map_err(|e| format!("Failed to create sentinel node: {}", e))?,
+                oxigraph::model::NamedNode::new("urn:rsp:type")
+                    .map_err(|e| format!("Failed to create sentinel node: {}", e))?,
+                oxigraph::model::Literal::new_simple_literal("end"),
+                oxigraph::model::GraphName::DefaultGraph,
+            );
+            stream.add_quads(vec![sentinel], final_timestamp)?;
+            Ok(())
+        } else {
+            Err(format!("Stream {} not found", stream_uri))
+        }
     }
 
     /// Get the parsed query
