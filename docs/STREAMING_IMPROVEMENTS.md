@@ -217,16 +217,16 @@ Event with timestamp=1500:  More events added
                             WARNING: NO RESULTS YET - windows still open
 
 Event with timestamp=2000:  New event arrives
-                            → Window [-8000, 2000) CLOSES
-                            → ✓ FIRST RESULT EMITTED
+                            -> Window [-8000, 2000) CLOSES
+                            -> FIRST RESULT EMITTED
 
 Event with timestamp=4000:  New event arrives
-                            → Window [-6000, 4000) CLOSES
-                            → ✓ SECOND RESULT EMITTED
+                            -> Window [-6000, 4000) CLOSES
+                            -> SECOND RESULT EMITTED
 
 Event with timestamp=6000:  New event arrives
-                            → Window [-4000, 6000) CLOSES
-                            → ✓ THIRD RESULT EMITTED
+                            -> Window [-4000, 6000) CLOSES
+                            -> THIRD RESULT EMITTED
 
 Event with timestamp=7000:  Last event (no more events after this)
                             WARNING: NO MORE RESULTS - no event to trigger closure

@@ -17,7 +17,7 @@ Queries with WINDOW clauses returned **zero results** even when data was correct
 
 1. **RSP-QL Parser** transforms WINDOW clauses to GRAPH clauses:
    ```sparql
-   WINDOW ex:w1 { ?s ?p ?o }  →  GRAPH ex:w1 { ?s ?p ?o }
+   WINDOW ex:w1 { ?s ?p ?o }  ->  GRAPH ex:w1 { ?s ?p ?o }
    ```
 
 2. **Quads Storage** used `DefaultGraph` instead of the window's graph name:
@@ -116,7 +116,7 @@ test test_window_graph_names ... FAILED
     subject: NamedNode("http://ex.org/s"), 
     predicate: NamedNode("http://ex.org/p"), 
     object: Literal("o"), 
-    graph_name: NamedNode("http://example.org/w1")  ← Correctly assigned!
+    graph_name: NamedNode("http://example.org/w1")  <- Correctly assigned!
 }
 Received 1 results
 test test_window_graph_names ... ok
@@ -208,7 +208,7 @@ stream.add_quads(vec![quad2], 3000)?; // Triggers window closure
 
 5. **R2ROperator executes query**:
    ```sparql
-   GRAPH ex:w1 { ?s ?p ?o }  ← Now matches!
+   GRAPH ex:w1 { ?s ?p ?o }  <- Now matches!
    ```
 
 6. **Results returned** to user
@@ -232,10 +232,10 @@ GraphName::NamedNode(
 ## Regression Testing
 
 All existing tests pass with the fix:
-- ✓ 6 unit tests (lib)
-- ✓ 12 integration tests
-- ✓ 2 RSP engine tests
-- ✓ 7 new API tests (including new graph name test)
+- [x] 6 unit tests (lib)
+- [x] 12 integration tests
+- [x] 2 RSP engine tests
+- [x] 7 new API tests (including new graph name test)
 
 **Total**: 27 tests pass, 0 failures
 
@@ -252,7 +252,7 @@ This fix resolves the fundamental issue that prevented WINDOW clauses from worki
 - "SPARQL query works in Oxigraph directly but not in rsp-rs"
 
 ### Why It Wasn't Caught Earlier
-- Integration tests used static joins which bypassed the WINDOW→GRAPH transformation
+- Integration tests used static joins which bypassed the WINDOW->GRAPH transformation
 - Manual testing often used queries that didn't rely on WINDOW matching
 - The bug only manifested when WINDOW clauses were actually executed as GRAPH clauses
 

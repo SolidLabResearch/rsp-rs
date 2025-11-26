@@ -65,7 +65,7 @@ Results emit when windows **close**, triggered by event **timestamps** (not wall
 ```rust
 stream.add_quads(vec![quad1], 0)?;     // Added to window
 stream.add_quads(vec![quad2], 1000)?;  // Added to window
-stream.add_quads(vec![quad3], 2000)?;  // Closes window → results emitted!
+stream.add_quads(vec![quad3], 2000)?;  // Closes window - results emitted!
 ```
 
 **Important:** Always call `close_stream()` after your last event to trigger final window closures.

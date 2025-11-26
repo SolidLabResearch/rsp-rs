@@ -25,7 +25,7 @@ This document answers the most common questions about how windows work in rsp-rs
 // You control window closure by the timestamps you provide
 stream.add_quads(vec![quad1], 0)?;      // timestamp = 0
 stream.add_quads(vec![quad2], 1000)?;   // timestamp = 1000
-stream.add_quads(vec![quad3], 2000)?;   // timestamp = 2000 → triggers closure!
+stream.add_quads(vec![quad3], 2000)?;   // timestamp = 2000 -> triggers closure!
 ```
 
 **Time-driven (NOT what rsp-rs uses):**
@@ -110,17 +110,17 @@ RANGE 10000 STEP 2000
 ```
 Event timestamp=0:
   ├─ Window [-10000, 0)
-  └─ Window [-8000, 2000)   ← Will close when timestamp >= 2000
+  └─ Window [-8000, 2000)   <- Will close when timestamp >= 2000
 
 Event timestamp=2000:
-  ├─ Window [-8000, 2000) CLOSES → EMIT RESULTS
-  ├─ Window [-6000, 4000)   ← Will close when timestamp >= 4000
-  └─ Window [-4000, 6000)   ← Will close when timestamp >= 6000
+  ├─ Window [-8000, 2000) CLOSES -> EMIT RESULTS
+  ├─ Window [-6000, 4000)   <- Will close when timestamp >= 4000
+  └─ Window [-4000, 6000)   <- Will close when timestamp >= 6000
 
 Event timestamp=4000:
-  ├─ Window [-6000, 4000) CLOSES → EMIT RESULTS
+  ├─ Window [-6000, 4000) CLOSES -> EMIT RESULTS
   ├─ Window [-4000, 6000)
-  └─ Window [-2000, 8000)   ← Will close when timestamp >= 8000
+  └─ Window [-2000, 8000)   <- Will close when timestamp >= 8000
 ```
 
 ---
@@ -132,7 +132,7 @@ Event timestamp=4000:
 **What happens:**
 1. You call `stream.add_quads(vec![quad], timestamp)`
 2. System checks: "Does this timestamp close any open windows?"
-3. If yes → emit results for those windows
+3. If yes -> emit results for those windows
 4. Add event to appropriate windows
 
 **What does NOT happen:**
@@ -158,7 +158,7 @@ stream.add_quads(vec![quad], 5000)?;   // Last event, timestamp=5000
 
 ```rust
 rsp_engine.close_stream("stream_uri", 100000)?;
-// Adds sentinel event with timestamp=100000 → closes ALL open windows
+// Adds sentinel event with timestamp=100000 -> closes ALL open windows
 ```
 
 ---
@@ -243,9 +243,9 @@ RANGE 10000, STEP 2000
 Event arrives with timestamp=5000
 
 Windows created:
-  [-5000, 5000)   ← Looks back 10000ms from 5000
-  [-3000, 7000)   ← Looks back 10000ms from 7000
-  [-1000, 9000)   ← Looks back 10000ms from 9000
+  [-5000, 5000)   <- Looks back 10000ms from 5000
+  [-3000, 7000)   <- Looks back 10000ms from 7000
+  [-1000, 9000)   <- Looks back 10000ms from 9000
 ```
 
 This is normal! It means "capture events from the last 10 seconds (RANGE)" relative to the window's end time.
