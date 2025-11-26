@@ -6,12 +6,12 @@ This document describes the improvements made to rsp-rs to make it more streamin
 
 All requested features have been implemented:
 
-- ✅ **#1**: Make `RDFStream` cloneable (High Priority)
-- ✅ **#2**: Expose window state inspection methods (Medium Priority)
-- ✅ **#3**: Improve result emission documentation (High Priority)
-- ✅ **#4**: Add debug logging control (Low Priority)
-- ✅ **#5**: Add convenience method for sentinel events (Medium Priority)
-- ✅ **#6**: Return stream clone instead of reference (High Priority)
+- [x] **#1**: Make `RDFStream` cloneable (High Priority)
+- [x] **#2**: Expose window state inspection methods (Medium Priority)
+- [x] **#3**: Improve result emission documentation (High Priority)
+- [x] **#4**: Add debug logging control (Low Priority)
+- [x] **#5**: Add convenience method for sentinel events (Medium Priority)
+- [x] **#6**: Return stream clone instead of reference (High Priority)
 
 ## Detailed Changes
 
@@ -214,7 +214,7 @@ Event with timestamp=0:     Added to window [-8000, 2000)
 Event with timestamp=500:   More events added
 Event with timestamp=1000:  More events added
 Event with timestamp=1500:  More events added
-                            ⚠️ NO RESULTS YET - windows still open
+                            WARNING: NO RESULTS YET - windows still open
 
 Event with timestamp=2000:  New event arrives
                             → Window [-8000, 2000) CLOSES
@@ -229,7 +229,7 @@ Event with timestamp=6000:  New event arrives
                             → ✓ THIRD RESULT EMITTED
 
 Event with timestamp=7000:  Last event (no more events after this)
-                            ⚠️ NO MORE RESULTS - no event to trigger closure
+                            WARNING: NO MORE RESULTS - no event to trigger closure
 
 Solution: Call close_stream("uri", 20000) to emit final results
          (This adds a sentinel event with timestamp=20000)
@@ -274,11 +274,11 @@ Solution: Call close_stream("uri", 20000) to emit final results
 
 All new features are tested in `tests/test_new_api.rs`:
 
-- ✅ `test_stream_is_cloneable` - Verifies Clone implementation
-- ✅ `test_get_stream_returns_clone` - Verifies clone semantics
-- ✅ `test_close_stream` - Verifies close_stream API
-- ✅ `test_window_inspection_methods` - Verifies state inspection
-- ✅ `test_debug_mode_toggle` - Verifies debug mode control
+- [x] `test_stream_is_cloneable` - Verifies Clone implementation
+- [x] `test_get_stream_returns_clone` - Verifies clone semantics
+- [x] `test_close_stream` - Verifies close_stream API
+- [x] `test_window_inspection_methods` - Verifies state inspection
+- [x] `test_debug_mode_toggle` - Verifies debug mode control
 
 All existing tests pass - no breaking changes.
 
@@ -392,11 +392,11 @@ Potential enhancements based on this work:
 
 These changes transform rsp-rs from a reference-based API to a value-based streaming API:
 
-✅ **Easier to use** - No lifetime fights  
-✅ **More explicit** - Clear stream closure semantics  
-✅ **Better debugging** - Inspection methods and controlled logging  
-✅ **Well documented** - Crystal clear window lifecycle explanation  
-✅ **Production ready** - Clean output, optional verbosity  
+[x] **Easier to use** - No lifetime fights  
+[x] **More explicit** - Clear stream closure semantics  
+[x] **Better debugging** - Inspection methods and controlled logging  
+[x] **Well documented** - Crystal clear window lifecycle explanation  
+[x] **Production ready** - Clean output, optional verbosity
 
 **The minimal changes needed for Janus**: Just #1, #3, and #6 eliminate all API friction.
 

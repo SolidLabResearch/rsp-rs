@@ -155,7 +155,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     stream.add_quads(vec![quad3], 1500)?; // timestamp = 1500
     thread::sleep(Duration::from_millis(100));
 
-    println!("\n⚠️  Still no results! Windows are open but not closed yet.");
+    println!("\nWARNING: Still no results! Windows are open but not closed yet.");
     println!("   Need an event with timestamp >= 2000 to trigger closure!\n");
 
     // Add event with timestamp=2000 to trigger first window closure
@@ -205,7 +205,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     stream.add_quads(vec![quad7], 7000)?; // timestamp = 7000
     thread::sleep(Duration::from_millis(200));
 
-    println!("\n⚠️  Without close_stream(), remaining windows won't emit!");
+    println!("\nWARNING: Without close_stream(), remaining windows won't emit!");
     println!("   We need an event with a higher timestamp to trigger closure.");
 
     // Inspect window state again

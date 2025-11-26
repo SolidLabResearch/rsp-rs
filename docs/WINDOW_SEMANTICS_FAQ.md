@@ -66,7 +66,7 @@ The `thread::sleep()` calls you see in examples are just to make the output read
 stream.add_quads(vec![quad1], 0)?;      // Added to windows
 stream.add_quads(vec![quad2], 1000)?;   // Added to windows
 stream.add_quads(vec![quad3], 1500)?;   // Added to windows
-// ❌ NO RESULTS - no event with timestamp >= 2000 to close the window!
+// NO RESULTS - no event with timestamp >= 2000 to close the window!
 ```
 
 **Solution:** Add a sentinel event or use `close_stream()`:
@@ -74,14 +74,14 @@ stream.add_quads(vec![quad3], 1500)?;   // Added to windows
 stream.add_quads(vec![quad1], 0)?;
 stream.add_quads(vec![quad2], 1000)?;
 stream.add_quads(vec![quad3], 1500)?;
-rsp_engine.close_stream("stream_uri", 20000)?;  // ✅ Triggers closure
+rsp_engine.close_stream("stream_uri", 20000)?;  // Triggers closure
 ```
 
 ### Cause 2: Not waiting for result processing
 ```rust
 let result_receiver = rsp_engine.start_processing();
 stream.add_quads(vec![quad], 2000)?;
-// ❌ Results might still be in the channel!
+// Results might still be in the channel!
 ```
 
 **Solution:** Give time for processing:
@@ -113,12 +113,12 @@ Event timestamp=0:
   └─ Window [-8000, 2000)   ← Will close when timestamp >= 2000
 
 Event timestamp=2000:
-  ├─ Window [-8000, 2000) CLOSES → ✅ EMIT RESULTS
+  ├─ Window [-8000, 2000) CLOSES → EMIT RESULTS
   ├─ Window [-6000, 4000)   ← Will close when timestamp >= 4000
   └─ Window [-4000, 6000)   ← Will close when timestamp >= 6000
 
 Event timestamp=4000:
-  ├─ Window [-6000, 4000) CLOSES → ✅ EMIT RESULTS
+  ├─ Window [-6000, 4000) CLOSES → EMIT RESULTS
   ├─ Window [-4000, 6000)
   └─ Window [-2000, 8000)   ← Will close when timestamp >= 8000
 ```
@@ -136,9 +136,9 @@ Event timestamp=4000:
 4. Add event to appropriate windows
 
 **What does NOT happen:**
-- ❌ No background timer checking wall-clock time
-- ❌ No automatic window closure after X seconds
-- ❌ No polling or periodic checks
+- No background timer checking wall-clock time
+- No automatic window closure after X seconds
+- No polling or periodic checks
 
 ---
 
@@ -169,7 +169,7 @@ rsp_engine.close_stream("stream_uri", 100000)?;
 
 ```rust
 stream.add_quads(vec![quad1], 5000)?;   // timestamp=5000
-stream.add_quads(vec![quad2], 3000)?;   // ❌ timestamp=3000 < 5000 (out of order)
+stream.add_quads(vec![quad2], 3000)?;   // timestamp=3000 < 5000 (out of order)
 ```
 
 **Best Practice:** Always add events in increasing timestamp order.
