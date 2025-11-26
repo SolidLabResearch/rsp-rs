@@ -24,8 +24,8 @@
 //! ```text
 //! - Events at t=0, 500, 1000, 1500 are added to windows
 //! - No results yet (windows still open)
-//! - Event with timestamp=2000 arrives → closes window [-8000, 2000) → results emitted
-//! - Event with timestamp=4000 arrives → closes window [-6000, 4000) → results emitted
+//! - Event with timestamp=2000 arrives -> closes window [-8000, 2000) -> results emitted
+//! - Event with timestamp=4000 arrives -> closes window [-6000, 4000) -> results emitted
 //!
 //! Note: Wall-clock time doesn't matter! You could add all these events instantly,
 //! but results only emit when an event's TIMESTAMP triggers window closure.
@@ -107,9 +107,9 @@
 //! ```text
 //! Event with timestamp=0:     Added to window
 //! Event with timestamp=1000:  More events added to window
-//! Event with timestamp=2000:  → window [-8000, 2000) closes → RESULTS EMITTED
-//! Event with timestamp=4000:  → window [-6000, 4000) closes → RESULTS EMITTED
-//! Event with timestamp=6000:  → window [-4000, 6000) closes → RESULTS EMITTED
+//! Event with timestamp=2000:  -> window [-8000, 2000) closes -> RESULTS EMITTED
+//! Event with timestamp=4000:  -> window [-6000, 4000) closes -> RESULTS EMITTED
+//! Event with timestamp=6000:  -> window [-4000, 6000) closes -> RESULTS EMITTED
 //! ...
 //! Event with timestamp=15000: Last event added to stream
 //!                             NO MORE RESULTS (no event to trigger closure!)

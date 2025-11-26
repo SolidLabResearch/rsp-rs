@@ -68,7 +68,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 Ok(result) => {
                     count += 1;
                     println!(
-                        "✓ Result #{}: Window [{}, {})",
+                        "[x] Result #{}: Window [{}, {})",
                         count, result.timestamp_from, result.timestamp_to
                     );
                     println!("  Bindings: {}\n", result.bindings);
@@ -160,7 +160,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Add event with timestamp=2000 to trigger first window closure
     println!("timestamp=2000: Adding event (subject_4)");
-    println!("                → This should CLOSE window [-8000, 2000) and emit first result!");
+    println!("                -> This should CLOSE window [-8000, 2000) and emit first result!");
     let quad4 = Quad::new(
         NamedNode::new("https://rsp.rs/subject_4")?,
         NamedNode::new("https://rsp.rs/predicate")?,
@@ -172,7 +172,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Add more events to trigger additional window closures
     println!("\ntimestamp=4000: Adding event (subject_5)");
-    println!("                → This should CLOSE window [-6000, 4000) and emit second result!");
+    println!("                -> This should CLOSE window [-6000, 4000) and emit second result!");
     let quad5 = Quad::new(
         NamedNode::new("https://rsp.rs/subject_5")?,
         NamedNode::new("https://rsp.rs/predicate")?,
@@ -183,7 +183,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     thread::sleep(Duration::from_millis(100));
 
     println!("\ntimestamp=6000: Adding event (subject_6)");
-    println!("                → This should CLOSE window [-4000, 6000) and emit third result!");
+    println!("                -> This should CLOSE window [-4000, 6000) and emit third result!");
     let quad6 = Quad::new(
         NamedNode::new("https://rsp.rs/subject_6")?,
         NamedNode::new("https://rsp.rs/predicate")?,
