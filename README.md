@@ -6,7 +6,7 @@ A high-performance RDF Stream Processing engine in Rust built on [Oxigraph](http
 
 ```toml
 [dependencies]
-rsp-rs = "0.3.1"
+rsp-rs = "0.3.2"
 ```
 
 Or:
