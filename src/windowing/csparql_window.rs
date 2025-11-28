@@ -257,7 +257,10 @@ impl CSPARQLWindow {
             self.t0 = t_e;
         }
 
-        let c_sup = ((t_e - self.t0).abs() as f64 / self.slide as f64).ceil() as i64 * self.slide;
+        // Use integer arithmetic to avoid precision loss with large timestamps
+        // This computes ceiling division: ceil(dividend / divisor) = (dividend + divisor - 1) / divisor
+        let delta = (t_e - self.t0).abs();
+        let c_sup = self.t0 + ((delta + self.slide - 1) / self.slide) * self.slide;
         let mut o_i = c_sup - self.width;
 
         if self.debug_mode {

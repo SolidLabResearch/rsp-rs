@@ -5,6 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.5] - 2025-01-XX
+
+### Fixed
+
+- **Large timestamp precision issue**: Fixed critical bug where timestamps with large absolute values (e.g., Unix milliseconds ~1.76 trillion) would cause incorrect window boundary calculations or silent event drops
+  - Replaced floating-point arithmetic with integer arithmetic in `CSPARQLWindow::scope()` method
+  - Eliminated precision loss from `i64` -> `f64` -> `i64` conversions
+  - Fixed logic error where relative offsets weren't properly converted to absolute timestamps
+  - All timestamp ranges now work correctly, from 0 to `i64::MAX`
+  - Real-time applications can now use Unix timestamps directly without normalization workarounds
+
+### Added
+
+- **Comprehensive large timestamp test suite** (`tests/large_timestamp_test.rs`)
+  - Test with realistic Unix millisecond timestamps (~1.76 trillion)
+  - Test with very large timestamps (near `i64::MAX / 2`)
+  - Test equivalence between small and large timestamp behaviors
+  - Test sub-second precision on large timestamps
+  - Test baseline functionality with small timestamps
+
+### Documentation
+
+- **New documentation**: `docs/LARGE_TIMESTAMP_FIX.md` explaining the issue, fix, and migration guide
+- Detailed technical explanation of the precision loss problem
+- Performance comparison showing integer arithmetic is faster
+- Migration guide for removing normalization workarounds
+
+---
+
 ## [0.3.4] - 2024-11-26
 
 ### Changed

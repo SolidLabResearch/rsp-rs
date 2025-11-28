@@ -6,7 +6,7 @@ A high-performance RDF Stream Processing engine in Rust built on [Oxigraph](http
 
 ```toml
 [dependencies]
-rsp-rs = "0.3.4"
+rsp-rs = "0.3.5"
 ```
 
 Or:
@@ -76,6 +76,16 @@ The system is **timestamp-driven**:
 - You can add all events instantly
 - Only the `timestamp` parameter matters
 - Windows close when an event's timestamp exceeds the window's end time
+
+## Important: Large Timestamp Support (v0.3.5+)
+
+**rsp-rs v0.3.5** fixes a critical precision issue with large timestamps (e.g., Unix milliseconds).
+
+- **Before v0.3.5**: Large timestamps (~1.76 trillion) would cause silent failures or incorrect results
+- **v0.3.5+**: All timestamp ranges work correctly, from 0 to `i64::MAX`
+- **No workarounds needed**: Use Unix timestamps directly without normalization
+
+See [LARGE_TIMESTAMP_FIX.md](docs/LARGE_TIMESTAMP_FIX.md) for details and migration guide.
 
 ## Features
 

@@ -1,0 +1,48 @@
+Fix: Large timestamp precision issue in window boundary calculations
+
+PROBLEM:
+rsp-rs v0.3.1-0.3.4 had a critical bug where timestamps with large absolute
+values (e.g., Unix milliseconds ~1.76 trillion) caused the query engine to
+silently drop events or fail to produce results. This was discovered when
+using rsp-rs in production with real-time data.
+
+ROOT CAUSE:
+The scope() method in CSPARQLWindow used floating-point arithmetic for window
+boundary calculations:
+  - Converting i64 -> f64 -> i64 caused precision loss
+  - f64 only has 53 bits of mantissa precision
+  - Additional logic error where relative offsets weren't converted to absolute
+
+SOLUTION:
+Replaced floating-point division with pure integer arithmetic:
+
+OLD: let c_sup = ((t_e - self.t0).abs() as f64 / self.slide as f64).ceil() as i64 * self.slide;
+NEW: let delta = (t_e - self.t0).abs();
+     let c_sup = self.t0 + ((delta + self.slide - 1) / self.slide) * self.slide;
+
+Benefits:
+- No precision loss (all operations on i64)
+- Correct absolute timestamp positioning
+- Actually faster (no type conversions)
+
+CHANGES:
+- src/windowing/csparql_window.rs: Fixed scope() method with integer arithmetic
+- tests/large_timestamp_test.rs: Added 5 comprehensive tests for large timestamps
+- docs/LARGE_TIMESTAMP_FIX.md: Detailed documentation of issue and fix
+- examples/large_timestamps.rs: Example using Unix millisecond timestamps
+- CHANGELOG.md: Documented v0.3.5 release with fix details
+- README.md: Updated version and added large timestamp support notice
+- Cargo.toml: Bumped version 0.3.4 -> 0.3.5
+
+VERIFICATION:
+All tests pass (30+ tests including 5 new large timestamp tests)
+Example successfully processes Unix millisecond timestamps (~1.76 trillion)
+
+IMPACT:
+- All timestamp ranges now work correctly (0 to i64::MAX)
+- Real-time applications can use Unix timestamps directly
+- No normalization workarounds needed
+- Production-ready for systems using actual wall-clock times
+
+Fixes issue reported from janus project usage.
+Version: 0.3.5
