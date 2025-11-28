@@ -46,7 +46,7 @@ let c_sup = self.t0 + ((delta + self.slide - 1) / self.slide) * self.slide;
 
 For positive integers, `ceil(a / b)` can be computed as `(a + b - 1) / b`:
 - Example: `ceil(7 / 3) = ceil(2.33) = 3`
-- Integer version: `(7 + 3 - 1) / 3 = 9 / 3 = 3` ✓
+- Integer version: `(7 + 3 - 1) / 3 = 9 / 3 = 3` [YES]
 
 This works because:
 - If `a` is divisible by `b`, then `(a + b - 1) / b = (a - 1) / b + 1 = a / b`

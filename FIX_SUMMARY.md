@@ -17,7 +17,7 @@ let c_sup = ((t_e - self.t0).abs() as f64 / self.slide as f64).ceil() as i64 * s
 
 **Two issues:**
 
-1. **Precision Loss**: Converting i64 → f64 → i64 loses precision with large values
+1. **Precision Loss**: Converting i64 -> f64 -> i64 loses precision with large values
    - f64 has only 53 bits of mantissa precision
    - Large timestamp arithmetic compounds the error
    - Results in incorrect window boundary calculations
@@ -71,7 +71,7 @@ let c_sup = self.t0 + ((delta + self.slide - 1) / self.slide) * self.slide;
   - Shows aggregation over sliding windows with real-time data
 
 ### 5. Version Bump
-- **Cargo.toml**: 0.3.4 → 0.3.5
+- **Cargo.toml**: 0.3.4 -> 0.3.5
 - **CHANGELOG.md**: Added v0.3.5 entry with detailed fix description
 - **README.md**: Updated version and added large timestamp support notice
 
@@ -93,16 +93,16 @@ cargo run --example large_timestamps
 ## Impact
 
 ### Before (v0.3.1-0.3.4)
-- ❌ Unix millisecond timestamps fail silently
-- ❌ Required epoch normalization workaround
-- ❌ Window boundaries calculated incorrectly
-- ❌ Real-time applications broken
+- [NO] Unix millisecond timestamps fail silently
+- [NO] Required epoch normalization workaround
+- [NO] Window boundaries calculated incorrectly
+- [NO] Real-time applications broken
 
 ### After (v0.3.5)
-- ✅ All timestamp ranges work (0 to i64::MAX)
-- ✅ No normalization needed
-- ✅ Perfect precision for all values
-- ✅ Real-time applications work out-of-the-box
+- [YES] All timestamp ranges work (0 to i64::MAX)
+- [YES] No normalization needed
+- [YES] Perfect precision for all values
+- [YES] Real-time applications work out-of-the-box
 
 ## Migration Guide
 
@@ -132,7 +132,7 @@ let actual_time = result.timestamp;
 ## Performance
 
 The integer arithmetic fix is actually **faster** than the floating-point version:
-- No i64→f64→i64 conversions (saves CPU cycles)
+- No i64->f64->i64 conversions (saves CPU cycles)
 - Integer division faster than floating-point on most architectures
 - Better cache behavior with consistent data types
 

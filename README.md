@@ -122,7 +122,7 @@ w.set_debug_mode(true); // Enable verbose logging
 ## Performance
 
 - **Throughput**: Up to 1.28M quads/second
-- **Latency**: ~400-700µs query execution on 30s windows
+- **Latency**: ~400-700us query execution on 30s windows
 - **Memory**: ~2.5KB per quad in window
 
 Run benchmarks:

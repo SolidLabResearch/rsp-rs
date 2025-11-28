@@ -39,9 +39,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **Complete emoji removal**: Removed ALL remaining unicode symbols and emojis from entire project
-  - Replaced all instances of `→` with `->`
-  - Replaced all instances of `←` with `<-`
-  - Replaced all instances of `✓` with `[x]`
+  - Replaced all instances of `->` with `->`
+  - Replaced all instances of `<-` with `<-`
+  - Replaced all instances of `[x]` with `[x]`
   - Verified zero emojis across all `.md`, `.rs`, and `.toml` files
   - All documentation now uses pure ASCII characters only
 

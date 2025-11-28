@@ -109,18 +109,18 @@ RANGE 10000 STEP 2000
 
 ```
 Event timestamp=0:
-  ├─ Window [-10000, 0)
-  └─ Window [-8000, 2000)   <- Will close when timestamp >= 2000
+  [1] Window [-10000, 0)
+  [2] Window [-8000, 2000)   <- Will close when timestamp >= 2000
 
 Event timestamp=2000:
-  ├─ Window [-8000, 2000) CLOSES -> EMIT RESULTS
-  ├─ Window [-6000, 4000)   <- Will close when timestamp >= 4000
-  └─ Window [-4000, 6000)   <- Will close when timestamp >= 6000
+  [1] Window [-8000, 2000) CLOSES -> EMIT RESULTS
+  [2] Window [-6000, 4000)   <- Will close when timestamp >= 4000
+  [3] Window [-4000, 6000)   <- Will close when timestamp >= 6000
 
 Event timestamp=4000:
-  ├─ Window [-6000, 4000) CLOSES -> EMIT RESULTS
-  ├─ Window [-4000, 6000)
-  └─ Window [-2000, 8000)   <- Will close when timestamp >= 8000
+  [1] Window [-6000, 4000) CLOSES -> EMIT RESULTS
+  [2] Window [-4000, 6000)
+  [3] Window [-2000, 8000)   <- Will close when timestamp >= 8000
 ```
 
 ---
